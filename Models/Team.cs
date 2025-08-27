@@ -2,11 +2,11 @@
 
 public class Team
 {
-    public int Id  { get; set; }
-    public int LeagueId { get; set; }
-    public League League { get; set; }
-    
-    public string Name { get; set; }
-    public string LogoUrl { get; set; }
-    public string Country { get; set; }
+        public int Id { get; set; }
+        // public int ExternalId { get; set; }
+        public string FullName { get; set; }
+        public string Abbreviation { get; set; }
+        public string City { get; set; }
+        public string Conference { get; set; }
+        public string Division { get; set; }
 }

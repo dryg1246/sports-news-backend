@@ -18,12 +18,12 @@ public class SportsController : ControllerBase
         _sportService = sportService;
     }
 
-    [HttpGet("/sports")]
-    public async Task<ActionResult<IEnumerable<Sports>>> GetSports()
-    {
-        var sports = await _context.Sports.ToListAsync();
-        return Ok(sports);
-    }
+    // [HttpGet("/sports")]
+    // public async Task<ActionResult<IEnumerable<Sports>>> GetSports()
+    // {
+    //     var sports = await _context.Sports.ToListAsync();
+    //     return Ok(sports);
+    // }
 
     [HttpGet("load")]
     public async Task<ActionResult> LoadSports()
@@ -31,6 +31,33 @@ public class SportsController : ControllerBase
         await _sportService.LoadSportsAsync();
         return Ok("sports loaded"); 
     }
+    
+    
+    [HttpGet("loadTeam")]
+    public async Task<ActionResult> LoadTeams()
+    {
+         await _sportService.LoadTeamAsync();
+        return Ok("team loaded"); 
+    }
+
+    [HttpGet("/sports")]
+    public async Task<ActionResult<IEnumerable<Sports>>> GetSports()
+    {
+        var sports = await _context.Sports.ToListAsync();
+        return Ok(sports);
+    }
+
+    [HttpGet("/teams")]
+    public async Task<ActionResult<IEnumerable<Team>>> GetTeams()
+    {
+        var teams = await _context.Teams.ToListAsync();
+        if (teams == null)
+        {
+            return NotFound();
+        }
+        return Ok(teams);
+    }
+
     
     [HttpGet("testadd")]
     public async Task<IActionResult> TestAdd()
@@ -48,6 +75,25 @@ public class SportsController : ControllerBase
 
         return Ok("Test sport added");
     }
+
+    [HttpGet("testTeamAdd")]
+    public async Task<IActionResult> TestTeamAdd()
+    {
+        var team = new Team
+        {
+            FullName = "Danya",
+            Abbreviation = "nba",
+            City = "New York",
+            Conference = "New York",
+            Division = "NBA",
+        };
+        _context.Teams.Add(team);
+        await _context.SaveChangesAsync();
+        
+        return Ok("Test team added");
+    }
+    
+  
 
 
 }

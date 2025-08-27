@@ -1,4 +1,6 @@
-﻿using System.Text.Json;
+﻿using System.Diagnostics;
+using System.Net.Http.Headers;
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using SportsNewsAPI.Dtos;
 
@@ -21,13 +23,19 @@ public class SportService
     {
         try
         {
-            var url = "https://www.thesportsdb.com/api/v1/json/3/all_sports.php";
-            var responce = await _httpClient.GetAsync(url);
+            var url = "https://www.thespportsdb.com/api/v1/json/123/all_sports.ph";
+            var response = await _httpClient.GetAsync(url);
         
-            if (!responce.IsSuccessStatusCode)
-                throw new Exception("API request failed");
+            if (!response.IsSuccessStatusCode)
+                throw new Exception($"API request failed with status {response.StatusCode}");
         
-            var result = JsonSerializer.Deserialize<SportsApiResponse>(responce.Content.ReadAsStringAsync().Result);
+            var result = await response.Content.ReadFromJsonAsync<SportsApiResponse>();
+            
+            if (result?.Sports == null || result.Sports.Count == 0)
+            {
+                _logger.LogWarning("No sports data received from API.");
+                return;
+            }
 
             if (result?.Sports != null)
             {
@@ -39,13 +47,13 @@ public class SportService
                     {
                         var testSport = new Sports
                         {
-                            Name = "TestSport",
-                            Format = "TestFormat",
-                            IconUrl = "http://example.com/icon.png",
-                            Description = "Test description"
+                            Name = sportDto.NameDto,
+                            Format = sportDto.FormatDto,
+                            IconUrl = sportDto.IconUrlDto,
+                            Description = sportDto.DescriptionDto,
                         };
-                    
                         _context.Sports.Add(testSport);
+                        _logger.LogInformation("Sports successfully loaded and saved.");
                     }
                     else
                     {
@@ -59,7 +67,73 @@ public class SportService
         }
         catch (Exception ex)
         {
-            throw new Exception($"Failed to load sports: {ex.Message}", ex);
+            _logger.LogError(ex, "Failed to load sports.");
+            throw;
+        }
+        
+        
+        
+    }
+      public async Task LoadTeamAsync()
+    {
+        try
+        {
+            var url = "https://api.balldontlie.io/v1/teams";
+            _httpClient.DefaultRequestHeaders.Authorization =
+                new AuthenticationHeaderValue("Bearer", "dca0e57c-8d49-4004-88d8-a783467aa975");
+            _httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
+            _httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("MyApp/1.0");
+            var response = await _httpClient.GetAsync(url);
+        
+            if (!response.IsSuccessStatusCode)
+                throw new Exception($"API request failed with status {response.StatusCode}");
+
+            var result = await response.Content.ReadFromJsonAsync<SportsApiResponse>();
+            
+            _logger.LogInformation("Received {count} teams from API", result?.Teams?.Count ?? 0);
+            
+            if (result?.Teams == null || result.Teams.Count == 0)
+            {
+                _logger.LogWarning("No sports data received from API.");
+                return;
+            }
+
+            if (result?.Teams != null)
+            {
+                foreach (var teamsDto in result.Teams)
+                {
+                    var existing = await _context.Teams.FirstOrDefaultAsync(sport => sport.FullName == teamsDto.FullName);
+
+                    if (existing == null)
+                    {
+                        var testTeam = new Team
+                        {
+                            Id = 1,
+                            FullName = "Danya SmetaNIN",
+                            Abbreviation = "nba",
+                            City = "NewYork",
+                            Conference = "nba",
+                            Division = "1",
+                        };
+                        _context.Teams.Add(testTeam);
+                        _logger.LogInformation("Sports successfully loaded and saved.");
+                    }
+                    else
+                    {
+                        existing.FullName = teamsDto.FullName;
+                        existing.Abbreviation = teamsDto.Abbreviation;
+                        existing.City = teamsDto.City;
+                        existing.Conference = teamsDto.Conference;
+                        existing.Division = teamsDto.Division;
+                    }
+                }
+                await _context.SaveChangesAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to load sports.");
+            throw;
         }
         
         
