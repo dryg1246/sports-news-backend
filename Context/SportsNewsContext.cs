@@ -10,6 +10,11 @@ public class SportsNewsContext : DbContext
    
    public DbSet<News> TodayNews { get; set; }
    public DbSet<News> FootballNews { get; set; }
+   public DbSet<News> RecentNews { get; set; }
+   public DbSet<News> BasketballNews { get; set; }
+   public DbSet<News> BadmintonNews { get; set; }
+   public DbSet<News> HockeyNews { get; set; }
+   public DbSet<News> CyclingNews { get; set; }
    public DbSet<Article> Articles { get; set; }
    public DbSet<Sports> Sports { get; set; }
    public DbSet<Source> Sources { get; set; }
