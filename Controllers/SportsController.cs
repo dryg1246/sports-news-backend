@@ -17,14 +17,7 @@ public class SportsController : ControllerBase
         _context = context;
         _sportService = sportService;
     }
-
-    // [HttpGet("/sports")]
-    // public async Task<ActionResult<IEnumerable<Sports>>> GetSports()
-    // {
-    //     var sports = await _context.Sports.ToListAsync();
-    //     return Ok(sports);
-    // }
-
+    
     [HttpGet("load")]
     public async Task<ActionResult> LoadSports()
     {

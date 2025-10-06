@@ -22,6 +22,7 @@ public class SportsNewsContext : DbContext
    public DbSet<MatchEvent> MatchEvents { get; set; }
    public DbSet<League> Leagues { get; set; }
    public DbSet<Match> Match { get; set; }
+   public DbSet<User> User { get; set; }
    
    protected override void OnModelCreating(ModelBuilder modelBuilder)
    {
