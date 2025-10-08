@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel.DataAnnotations;
 using Newtonsoft.Json;
 using SportsNewsAPI.Interfaces;
 
@@ -10,12 +11,16 @@ namespace SportsNewsAPI
         public Guid Id { get; set; }
 
         [JsonProperty("userName")]
+        [Required]
         public string UserName { get; set; }
 
         [JsonProperty("email")]
+        [Required]
+        [EmailAddress]
         public string Email { get; set; }
 
         [JsonProperty("passwordHash")]
+        [Required]
         public string PasswordHash { get; set; }
 
         [JsonConstructor]

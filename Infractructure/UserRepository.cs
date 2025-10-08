@@ -18,6 +18,6 @@ public class UserRepository : IUserRepository
         var userEntity = await _context.User.AsNoTracking().FirstOrDefaultAsync(e => e.Email == email) ??
                          throw new Exception();
 
-        return _mapper.Map<User>(userEntity);
+        return userEntity;
     }
 }

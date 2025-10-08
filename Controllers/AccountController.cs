@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using SportsNewsAPI.Request.User;
 using SportsNewsAPI.Services;
 
@@ -6,13 +7,15 @@ namespace SportsNewsAPI.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class UserController : Controller
+public class AccountController : Controller
 {
     private readonly UserServices _userServices;
+    private readonly SportsNewsContext _context;
 
-    public UserController(UserServices userServices)
+    public AccountController(UserServices userServices, SportsNewsContext context)
     {
         _userServices = userServices;
+        _context = context;
     }
     
     [HttpPost("/register")]
@@ -29,6 +32,14 @@ public class UserController : Controller
         var token = await _userServices.Login(request.Email, request.Password);
 
         return Ok(token);
+    }
+
+    [HttpGet("/allUser")]
+    public async Task<ActionResult> GetALlUser()
+    {
+        var users = await _context.User.ToListAsync();
+
+        return Ok(users);
     }
     
 }
