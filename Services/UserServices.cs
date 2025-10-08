@@ -1,5 +1,8 @@
-﻿using Microsoft.AspNetCore.Http.HttpResults;
+﻿using System.IdentityModel.Tokens.Jwt;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using SportsNewsAPI.Dtos;
 using SportsNewsAPI.Interfaces;
 using SportsNewsAPI.Interfaces.Auth;
 using SportsNewsAPI.Interfaces.JWT;
@@ -20,27 +23,27 @@ public class UserServices
         _jwtGenerate = jwtGenerate;
     }
     
-    public async Task Register(string userName, string email, string password)
+    public async Task Register(RegisterUserDto dto)
     {
-        var hashedPassword = _passwordHasher.Generate(password);
+        var hashedPassword = _passwordHasher.Generate(dto.Password);
 
-        var user = User.Create(Guid.NewGuid(), userName, email, hashedPassword);
+        var user = User.Create(Guid.NewGuid(), dto.UserName, dto.Email, hashedPassword);
 
         _context.User.Add(user);
         await _context.SaveChangesAsync();
     }
 
-    public async Task<string> Login(string email, string password)
+    public async Task<string> Login(LoginUserDto dto)
     {
-        var user = await _userRepository.GetByEmail(email);
+        var user = await _userRepository.GetByEmail(dto.Email);
 
-        var results = _passwordHasher.Verify(password, user.PasswordHash);
+        var results = _passwordHasher.Verify(dto.Password, user.PasswordHash);
 
         if (results == false)
         {
             throw new Exception("Fail To Login");
         }
-        if (user.Email != email)
+        if (user.Email != dto.Email)
         {
             Console.WriteLine("Пользователь не зарегестрирован");
         }

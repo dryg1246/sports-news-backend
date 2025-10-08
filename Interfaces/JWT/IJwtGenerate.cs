@@ -3,4 +3,5 @@
 public interface IJwtGenerate
 {
     string GenerateToken(User user);
+    string GeneratePasswordResetToken(User user);
 }

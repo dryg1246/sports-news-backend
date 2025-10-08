@@ -1,3 +1,5 @@
-﻿namespace SportsNewsAPI.Request.User;
+﻿using SportsNewsAPI.Dtos;
 
-public record RegisterUserRequest(string UserName, string Email, string Password);
+namespace SportsNewsAPI.Request.User;
+
+public record RegisterUserRequest(RegisterUserDto Dto);

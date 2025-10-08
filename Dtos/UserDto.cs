@@ -2,8 +2,8 @@
 
 public class UserDto
 {
-    public int IdDto { get; set; }
-    public string UserNameDto { get; set; }
-    public string EmailDto { get; set; }
-    public string PasswordHashDto { get; set; }
+    public int Id { get; set; }
+    public string UserName { get; set; }
+    public string Email { get; set; }
+    public string PasswordHash { get; set; }
 }
