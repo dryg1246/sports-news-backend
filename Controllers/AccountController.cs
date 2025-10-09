@@ -1,11 +1,13 @@
 ﻿using MailKit.Net.Smtp;
 using MailKit.Security;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MimeKit;
 using MimeKit.Text;
 using SportsNewsAPI.Dtos;
 using SportsNewsAPI.Interfaces;
+using SportsNewsAPI.Interfaces.Auth;
 using SportsNewsAPI.Interfaces.JWT;
 using SportsNewsAPI.Request.User;
 using SportsNewsAPI.Services;
@@ -21,8 +23,9 @@ public class AccountController : Controller
     private readonly IEmailServices _emailServices;
     private readonly IUserRepository _userRepository;
     private readonly IJwtGenerate _jwtGenerate;
+    private readonly IPasswordHasher _passwordHasher;
 
-    public AccountController(IEmailServices emailServices, IJwtGenerate jwtGenerate, UserServices userServices,
+    public AccountController(IPasswordHasher passwordHasher, IEmailServices emailServices, IJwtGenerate jwtGenerate, UserServices userServices,
         SportsNewsContext context, IUserRepository userRepository)
     {
         _userServices = userServices;
@@ -30,6 +33,7 @@ public class AccountController : Controller
         _userRepository = userRepository;
         _jwtGenerate = jwtGenerate;
         _emailServices = emailServices;
+        _passwordHasher = passwordHasher;
     }
 
     [HttpPost("/register")]
@@ -80,5 +84,28 @@ public class AccountController : Controller
         await _emailServices.SendEmail(dto, body);
 
         return Ok();
+    }
+
+    [HttpPost("/resetPassword")]
+    public async Task<IActionResult> ResetPassword(ResetPasswordDto dto)
+    {
+        var email = _userRepository.GetEmailFromToken(dto.Token);
+        if (email == null)
+            return BadRequest("Token is invalid or expired");
+
+        if (dto.NewPassword != dto.RepeatNewPassword)
+        {
+            return BadRequest("Password not match");
+        }
+
+        var user = _context.User.FirstOrDefault(e => e.Email == email);
+        
+        if (user == null)
+            return BadRequest("User dont found");
+
+        user.PasswordHash = _passwordHasher.Generate(dto.NewPassword);
+
+        await _context.SaveChangesAsync();
+        return Ok("Пароль успешно обновлён");
     }
 }

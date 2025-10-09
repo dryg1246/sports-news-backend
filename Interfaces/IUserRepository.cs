@@ -3,4 +3,5 @@
 public interface IUserRepository
 {
     Task<User> GetByEmail(string email);
+    string? GetEmailFromToken(string token);
 }

@@ -1,4 +1,6 @@
-﻿using AutoMapper;
+﻿using System.IdentityModel.Tokens.Jwt;
+using AutoMapper;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 using SportsNewsAPI.Interfaces;
 
@@ -19,5 +21,37 @@ public class UserRepository : IUserRepository
                          throw new Exception();
 
         return userEntity;
+    }
+
+    public string? GetEmailFromToken(string token)
+    {
+        var handler = new JwtSecurityTokenHandler();
+        try
+        {
+            var jwtToken = handler.ReadJwtToken(token);
+
+            if (jwtToken.ValidTo < DateTime.UtcNow)
+            {
+                return null;
+            }
+
+            var purpose = jwtToken.Claims.FirstOrDefault(c => c.Type == "purpose")?.Value;
+            if (purpose != "password-reset")
+            {
+                return null;
+            }
+
+            var email = jwtToken.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Email)?.Value;
+            if (string.IsNullOrEmpty(email))
+            {
+                return null;
+            }
+
+            return email;
+        }
+        catch
+        {
+            return null;
+        }
     }
 }
