@@ -1,8 +1,6 @@
 ﻿
 using MailKit.Net.Smtp;
 using MailKit.Security;
-using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Mvc;
 using MimeKit;
 using MimeKit.Text;
 using SportsNewsAPI.Dtos;

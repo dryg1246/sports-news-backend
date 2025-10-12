@@ -86,26 +86,26 @@ public class AccountController : Controller
         return Ok();
     }
 
-    [HttpPost("/resetPassword")]
-    public async Task<IActionResult> ResetPassword(ResetPasswordDto dto)
+    [HttpPost("/reset-password")]
+    public async Task<ActionResult> ResetPassword(ResetPasswordDto dto)
     {
-        var email = _userRepository.GetEmailFromToken(dto.Token);
-        if (email == null)
-            return BadRequest("Token is invalid or expired");
-
         if (dto.NewPassword != dto.RepeatNewPassword)
         {
-            return BadRequest("Password not match");
+           return BadRequest("Password dont match");
         }
+        var email = _userRepository.GetEmailFromToken(dto.Token);
 
         var user = _context.User.FirstOrDefault(e => e.Email == email);
-        
         if (user == null)
-            return BadRequest("User dont found");
-
-        user.PasswordHash = _passwordHasher.Generate(dto.NewPassword);
+        {
+            return BadRequest("Не правильный жмейл");
+        }
+        
+        var passwordHashed = _passwordHasher.Generate(dto.NewPassword);
+        user.PasswordHash = passwordHashed;
 
         await _context.SaveChangesAsync();
-        return Ok("Пароль успешно обновлён");
+        return Ok("Пароль изменен");
     }
+    
 }

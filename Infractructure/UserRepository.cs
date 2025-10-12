@@ -1,8 +1,10 @@
-﻿using System.IdentityModel.Tokens.Jwt;
+﻿using System.Diagnostics;
+using System.IdentityModel.Tokens.Jwt;
 using AutoMapper;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 using SportsNewsAPI.Interfaces;
+using JwtHeaderParameterNames = Microsoft.IdentityModel.JsonWebTokens.JwtHeaderParameterNames;
 
 namespace SportsNewsAPI.Infractructure;
 
@@ -25,33 +27,33 @@ public class UserRepository : IUserRepository
 
     public string? GetEmailFromToken(string token)
     {
-        var handler = new JwtSecurityTokenHandler();
+        var handleToken = new JwtSecurityTokenHandler();
+
         try
         {
-            var jwtToken = handler.ReadJwtToken(token);
+            var jwtToken = handleToken.ReadToken(token) as JwtSecurityToken;
 
-            if (jwtToken.ValidTo < DateTime.UtcNow)
+            if (jwtToken?.ValidTo < DateTime.UtcNow.Date)
             {
                 return null;
             }
 
-            var purpose = jwtToken.Claims.FirstOrDefault(c => c.Type == "purpose")?.Value;
-            if (purpose != "password-reset")
+            var email = jwtToken?.Claims.FirstOrDefault(claim => claim.Type == JwtRegisteredClaimNames.Email)?.Value;
+            Console.WriteLine(email);
+            
+            
+            var resetPasswordClaims = jwtToken?.Claims.FirstOrDefault(claim => claim.Type == "purpose")?.Value;
+            if (resetPasswordClaims != "password-reset")
             {
                 return null;
             }
-
-            var email = jwtToken.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Email)?.Value;
-            if (string.IsNullOrEmpty(email))
-            {
-                return null;
-            }
-
-            return email;
+            return email ;
         }
-        catch
+        catch 
         {
             return null;
         }
+        
+        
     }
 }
