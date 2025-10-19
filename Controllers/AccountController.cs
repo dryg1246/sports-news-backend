@@ -24,8 +24,10 @@ public class AccountController : Controller
     private readonly IUserRepository _userRepository;
     private readonly IJwtGenerate _jwtGenerate;
     private readonly IPasswordHasher _passwordHasher;
+    private readonly UserManager<User> _userManager;
+    private readonly SignInManager<User> _signInManager;
 
-    public AccountController(IPasswordHasher passwordHasher, IEmailServices emailServices, IJwtGenerate jwtGenerate, UserServices userServices,
+    public AccountController(SignInManager<User> signInManager, UserManager<User> userManager, IPasswordHasher passwordHasher, IEmailServices emailServices, IJwtGenerate jwtGenerate, UserServices userServices,
         SportsNewsContext context, IUserRepository userRepository)
     {
         _userServices = userServices;
@@ -34,6 +36,8 @@ public class AccountController : Controller
         _jwtGenerate = jwtGenerate;
         _emailServices = emailServices;
         _passwordHasher = passwordHasher;
+        _userManager = userManager;
+        _signInManager = signInManager;
     }
 
     [HttpPost("/register")]
@@ -48,8 +52,16 @@ public class AccountController : Controller
     public async Task<ActionResult> Login([FromBody] LoginUserDto dto)
     {
         var token = await _userServices.Login(dto);
+        var user = await _userManager.FindByEmailAsync(dto.Email);
+        await _signInManager.SignInAsync(user, isPersistent: false);
 
-        return Ok(token);
+        return Ok(new 
+        { 
+            Message = "Пользователь успешно зарегистрирован и авторизован",
+            Token = token,
+            UserId = user.Id,
+            Email = user.Email
+        });
     }
 
     [HttpGet("/allUser")]
@@ -63,16 +75,16 @@ public class AccountController : Controller
     [HttpPost("/forgot-password")]
     public async Task<ActionResult> ForgotPassword(ForgotPasswordDto dto)
     {
-        var user = _userRepository.GetByEmail(dto.EmailTo);
+        var user = await _userManager.FindByEmailAsync(dto.EmailTo);
     
         if (user == null)
         {
             return BadRequest("User not found");
         }
     
-        var token = _jwtGenerate.GeneratePasswordResetToken(await user);
+        var token = await _userManager.GeneratePasswordResetTokenAsync(user);
         
-        var resetLink = $"http://localhost:5173/reset-password?token={Uri.EscapeDataString(token)}";
+        var resetLink = $"http://localhost:5173/reset-password?/email=${dto.EmailTo}token={Uri.EscapeDataString(token)}";
         
         var body = $@"
         <p>Hi {dto.EmailTo}, ScoreXI your favorite website</p>
@@ -93,18 +105,26 @@ public class AccountController : Controller
         {
            return BadRequest("Password dont match");
         }
-        var email = _userRepository.GetEmailFromToken(dto.Token);
+        // var email = _userRepository.GetEmailFromToken(dto.Token);
+        //
+        // if (email == null)
+        // {
+        //     return BadRequest("Email dont founded");
+        // }
 
-        var user = _context.User.FirstOrDefault(e => e.Email == email);
+        var user = await _userManager.FindByEmailAsync(dto.Email);
         if (user == null)
         {
             return BadRequest("Не правильный жмейл");
         }
         
-        var passwordHashed = _passwordHasher.Generate(dto.NewPassword);
-        user.PasswordHash = passwordHashed;
+        var identityToken = await _userManager.GeneratePasswordResetTokenAsync(user);
 
-        await _context.SaveChangesAsync();
+        var result = await _userManager.ResetPasswordAsync(user, identityToken, dto.NewPassword);
+        if (!result.Succeeded)
+            return BadRequest(string.Join(", ", result.Errors.Select(e => e.Description)));
+
+        await _userManager.UpdateAsync(user);
         return Ok("Пароль изменен");
     }
     

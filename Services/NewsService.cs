@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using SportsNewsAPI.Dtos;
 
 namespace SportsNewsAPI.Services;
@@ -581,5 +582,16 @@ public async Task LoadFootballNews()
             await _context.SaveChangesAsync();
         }
     }
+
+    // public async Task<string> ParsingText(string url)
+    // {
+    //     var request = new HttpRequestMessage(HttpMethod.Get, url);
+    //     request.Headers.UserAgent.ParseAdd("MyNewsApp/1.0");
+    //
+    //     var response = await _httpClient.SendAsync(request);
+    //     response.EnsureSuccessStatusCode();7
+    //     var content = response.Content.ReadAsStringAsync();
+    //     return content;
+    // }
 
 }

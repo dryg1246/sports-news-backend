@@ -1,8 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 
 namespace SportsNewsAPI;
 
-public class SportsNewsContext : DbContext
+public class SportsNewsContext :  IdentityDbContext<User, IdentityRole<Guid>, Guid>
 {
    public SportsNewsContext(DbContextOptions<SportsNewsContext> options) : base(options)
    {
@@ -26,7 +28,7 @@ public class SportsNewsContext : DbContext
    
    protected override void OnModelCreating(ModelBuilder modelBuilder)
    {
-      // News → Articles
+      base.OnModelCreating(modelBuilder);
       modelBuilder.Entity<News>()
          .HasMany(n => n.Articles)
          .WithOne(a => a.News)

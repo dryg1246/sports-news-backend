@@ -1,4 +1,5 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
+using System.Security.Principal;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -11,33 +12,50 @@ namespace SportsNewsAPI.Services;
 
 public class UserServices
 {
-    private readonly IPasswordHasher _passwordHasher;
-    private readonly IUserRepository _userRepository;
-    private readonly SportsNewsContext _context;
     private readonly IJwtGenerate _jwtGenerate;
-    public UserServices(IJwtGenerate jwtGenerate, IPasswordHasher passwordHasher, IUserRepository userRepository, SportsNewsContext context)
+    private readonly UserManager<User> _userManager;
+    public UserServices(UserManager<User> userManager, IJwtGenerate jwtGenerate)
     {
-        _passwordHasher = passwordHasher;
-        _userRepository = userRepository;
-        _context = context;
         _jwtGenerate = jwtGenerate;
+        _userManager = userManager;
     }
     
-    public async Task Register(RegisterUserDto dto)
+    public async Task<IdentityResult> Register(RegisterUserDto dto)
     {
-        var hashedPassword = _passwordHasher.Generate(dto.Password);
+        // var hashedPassword = _passwordHasher.Generate(dto.Password);
+        var user = new User()
+        {
+            UserName = dto.UserName,
+            Email = dto.Email,
+            EmailConfirmed = false
+        };
 
-        var user = User.Create(Guid.NewGuid(), dto.UserName, dto.Email, hashedPassword);
+        var result = await _userManager.CreateAsync(user, dto.Password);
 
-        _context.User.Add(user);
-        await _context.SaveChangesAsync();
+        if (result.Succeeded)
+        {
+            await _userManager.AddToRoleAsync(user, "User");
+        }
+        
+        if (!result.Succeeded)
+        {
+            throw new Exception(string.Join(", ", result.Errors.Select(e => e.Description)));
+        }
+        return result;
     }
 
     public async Task<string> Login(LoginUserDto dto)
     {
-        var user = await _userRepository.GetByEmail(dto.Email);
+        var user = await _userManager.FindByEmailAsync(dto.Email);
 
-        var results = _passwordHasher.Verify(dto.Password, user.PasswordHash);
+        if (user == null)
+        {
+            throw new Exception("Пользователь не найден");
+        }
+
+        // var passwordHashed = _userManager.PasswordHasher.HashPassword(user, dto.Password);
+
+        var results = await _userManager.CheckPasswordAsync(user, dto.Password);
 
         if (results == false)
         {

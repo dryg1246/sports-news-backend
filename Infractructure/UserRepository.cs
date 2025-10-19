@@ -31,15 +31,20 @@ public class UserRepository : IUserRepository
 
         try
         {
+            if (string.IsNullOrEmpty(token))
+                return null;
+            
             var jwtToken = handleToken.ReadToken(token) as JwtSecurityToken;
 
-            if (jwtToken?.ValidTo < DateTime.UtcNow.Date)
-            {
+            if (jwtToken?.ValidTo < DateTime.UtcNow)
                 return null;
-            }
 
             var email = jwtToken?.Claims.FirstOrDefault(claim => claim.Type == JwtRegisteredClaimNames.Email)?.Value;
-            Console.WriteLine(email);
+            if (string.IsNullOrEmpty(email))
+            {
+                Console.WriteLine("Email claim not found in token");
+                return null;
+            }
             
             
             var resetPasswordClaims = jwtToken?.Claims.FirstOrDefault(claim => claim.Type == "purpose")?.Value;
@@ -49,8 +54,9 @@ public class UserRepository : IUserRepository
             }
             return email ;
         }
-        catch 
+        catch(Exception ex)
         {
+            Console.WriteLine($"Error in GetEmailFromToken: {ex.Message}");
             return null;
         }
         

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http.HttpResults;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SportsNewsAPI.Services;
@@ -27,6 +28,7 @@ public class BadmintonController : Controller
         return Ok("badminton news load");
     }
 
+    [Authorize(Roles = "Admin")]
     [HttpGet("/getBadmintonNews/{category}")]
     public async Task<IActionResult> GetBadmintonNews(string category)
     {
