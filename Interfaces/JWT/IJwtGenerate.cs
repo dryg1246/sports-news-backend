@@ -4,7 +4,7 @@ namespace SportsNewsAPI.Interfaces.JWT;
 
 public interface IJwtGenerate
 {
-    string GenerateToken(User user);
+    Task<string> GenerateToken(User user);
     // string GeneratePasswordResetToken(User user);
     // string GeneratePasswordResetToken(IdentityUser? user);
 }

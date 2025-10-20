@@ -1,5 +1,6 @@
 ﻿using MailKit.Net.Smtp;
 using MailKit.Security;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -64,6 +65,7 @@ public class AccountController : Controller
         });
     }
 
+    [Authorize(Roles = "Admin")]
     [HttpGet("/allUser")]
     public async Task<ActionResult> GetALlUser()
     {

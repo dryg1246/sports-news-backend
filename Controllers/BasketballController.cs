@@ -1,11 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Web.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SportsNewsAPI.Services;
 
 namespace SportsNewsAPI.Controllers;
 
 [ApiController]
-[Route("[controller]")]
+[Microsoft.AspNetCore.Mvc.Route("[controller]")]
 public class BasketballController : Controller
 {
     public readonly SportsNewsContext _context;
@@ -18,15 +19,15 @@ public class BasketballController : Controller
         _newsService = newsService;
     }
     
-    
-    [HttpGet("/loadBasketballNews")]
+    [Authorize(Roles = "Admin")]
+    [Microsoft.AspNetCore.Mvc.HttpGet("/loadBasketballNews")]
     public async Task<IActionResult> LoadBasketballNews()
     {
         await _newsService.LoadBasketballNews();
         return Ok("basketball news loaded");
     }
-
-    [HttpGet("/getBasketballNews/{category}")]
+    
+    [Microsoft.AspNetCore.Mvc.HttpGet("/getBasketballNews/{category}")]
     public async Task<IActionResult> GetBasketballNews(string category)
     {
         var basketballNews = await _context.Articles.Where(a => a.Category == category).ToListAsync();

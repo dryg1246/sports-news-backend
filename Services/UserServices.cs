@@ -53,6 +53,12 @@ public class UserServices
             throw new Exception("Пользователь не найден");
         }
 
+        if (user != null)
+        {
+            var roles = await _userManager.GetRolesAsync(user);
+            
+        }
+
         // var passwordHashed = _userManager.PasswordHasher.HashPassword(user, dto.Password);
 
         var results = await _userManager.CheckPasswordAsync(user, dto.Password);
@@ -67,7 +73,7 @@ public class UserServices
         }
 
 
-        var token = _jwtGenerate.GenerateToken(user);
+        var token = await _jwtGenerate.GenerateToken(user);
         return token;
     }
 }
