@@ -33,6 +33,8 @@ namespace SportsNewsAPI
         //     PasswordHash = passwordHash;
         // }
         // public string FullName { get; set; }
+        [Required]
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public User(){}
         
 

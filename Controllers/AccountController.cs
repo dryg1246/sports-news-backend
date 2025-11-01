@@ -2,6 +2,7 @@
 using MailKit.Security;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MimeKit;
@@ -61,17 +62,67 @@ public class AccountController : Controller
             Message = "Пользователь успешно зарегистрирован и авторизован",
             Token = token,
             UserId = user.Id,
+            CreatedAt = user.CreatedAt,
             Email = user.Email
         });
     }
-
-    [Authorize(Roles = "Admin")]
+    
     [HttpGet("/allUser")]
     public async Task<ActionResult> GetALlUser()
     {
         var users = await _context.User.ToListAsync();
 
         return Ok(users);
+    }
+
+    [HttpGet("/user/{id}")]
+    public async Task<ActionResult> GetUserById(Guid id)
+    {
+        var user = await _context.User.FirstOrDefaultAsync(a => a.Id == id);
+
+        return Ok(user);
+    }
+
+    [HttpPatch("/editUser/{id}")]
+    public async Task<ActionResult> EditUser(Guid id, [FromBody] UserUpdateDto dto)
+    {
+        var user = await _context.User.FirstOrDefaultAsync(a => a.Id == id);
+
+        if (user == null)
+        {
+            return BadRequest("Problem with User: User is null");
+        }
+
+        if (!string.IsNullOrEmpty(dto.Email))
+        {
+            user.Email = dto.Email;
+            user.NormalizedEmail = _userManager.NormalizeEmail(user.Email);
+        }
+
+        if (!string.IsNullOrEmpty(dto.UserName))
+        {
+            user.UserName = dto.UserName;
+            user.NormalizedUserName = _userManager.NormalizeName(user.UserName);
+        }
+
+        await _context.SaveChangesAsync();
+        return Ok(new { user.Email, user.UserName });
+    }
+
+    // [Authorize(Roles = "Admin")]
+    [HttpDelete("/deleteUser/{id}")]
+    public async Task<string> DeleteUser(Guid id)
+    {
+        var user = await _context.User.FirstOrDefaultAsync(u => u.Id == id);
+
+        if (user == null)
+        {
+            return ("User is possible null");
+        }
+
+        _context.RemoveRange(user);
+        await _context.SaveChangesAsync();
+        return ("Users successful delete");
     }
 
     [HttpPost("/forgot-password")]

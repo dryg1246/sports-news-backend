@@ -441,6 +441,77 @@ public async Task LoadFootballNews()
         }
         
     }
+    
+     public async Task LoadChessNews()
+    {
+        var url = "https://newsapi.org/v2/everything?q=chess&language=en&apiKey=778121830edd480eba72a03f23ab9ec0";
+        var request = new HttpRequestMessage(HttpMethod.Get, url);
+        request.Headers.UserAgent.ParseAdd("MyNewsApp/1.0");
+
+        var response = await _httpClient.SendAsync(request);
+        var result = await response.Content.ReadFromJsonAsync<NewsDto>();
+
+        var chessNews = new News()
+        {
+            Status = result.Status,
+            TotalResults = result.TotalResults,
+        };
+        _context.ChessNews.Add(chessNews);
+        await _context.SaveChangesAsync();
+
+
+        foreach (var chessNewsDto in result.Articles)
+        {
+            var source = await _context.Sources.FirstOrDefaultAsync(a => a.Name == chessNewsDto.Source.Name);
+
+            if (source == null)
+            {
+                source = new Source()
+                {
+                    Name = chessNewsDto.Source.Name,
+                    ApiId = chessNewsDto.Source.ApiId ?? string.Empty,
+                };
+                _context.Sources.Add(source);
+                await _context.SaveChangesAsync();
+            }
+            
+            var existing = await _context.Articles.FirstOrDefaultAsync(a => a.Url == chessNewsDto.Url);
+
+            if (existing == null)
+            {
+                var chessNewsArticle = new Article()
+                {
+                    Title = chessNewsDto.Title ?? string.Empty,
+                    Url = chessNewsDto.Url ?? string.Empty,
+                    Description = chessNewsDto.Description ?? string.Empty,
+                    Author = chessNewsDto.Author ?? string.Empty,
+                    Content = chessNewsDto.Content ?? string.Empty,
+                    PublishedAt = chessNewsDto.PublishedAt.ToUniversalTime(),
+                    UrlToImage = chessNewsDto.UrlToImage ?? string.Empty,
+                    NewsId = chessNews.Id,
+                    Category = "Chess",
+                    SourceId = source.Id,
+                };
+                _context.Articles.Add(chessNewsArticle);
+            }
+            else
+            {
+                existing.Title = chessNewsDto.Title ?? string.Empty;
+                existing.Url = chessNewsDto.Url ?? string.Empty;
+                existing.Description = chessNewsDto.Description ?? string.Empty;
+                existing.Author = chessNewsDto.Author ?? string.Empty;
+                existing.Content = chessNewsDto.Content ?? string.Empty;
+                existing.PublishedAt = chessNewsDto.PublishedAt.ToUniversalTime();
+                existing.UrlToImage = chessNewsDto.UrlToImage ?? string.Empty;
+                existing.NewsId = chessNews.Id;
+                existing.SourceId = source.Id;
+                existing.Category = "Chess";
+            }
+
+            await _context.SaveChangesAsync();
+        }
+        
+    }
 
     public async Task LoadBadmintonNews()
     {

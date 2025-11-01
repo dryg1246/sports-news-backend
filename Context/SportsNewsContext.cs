@@ -14,6 +14,7 @@ public class SportsNewsContext :  IdentityDbContext<User, IdentityRole<Guid>, Gu
    public DbSet<News> FootballNews { get; set; }
    public DbSet<News> RecentNews { get; set; }
    public DbSet<News> BasketballNews { get; set; }
+   public DbSet<News> ChessNews { get; set; }
    public DbSet<News> BadmintonNews { get; set; }
    public DbSet<News> HockeyNews { get; set; }
    public DbSet<News> CyclingNews { get; set; }
@@ -29,18 +30,27 @@ public class SportsNewsContext :  IdentityDbContext<User, IdentityRole<Guid>, Gu
    protected override void OnModelCreating(ModelBuilder modelBuilder)
    {
       base.OnModelCreating(modelBuilder);
+
+      
       modelBuilder.Entity<News>()
          .HasMany(n => n.Articles)
          .WithOne(a => a.News)
          .HasForeignKey(a => a.NewsId)
          .OnDelete(DeleteBehavior.Cascade);
-
-      // Source → Articles
+      
       modelBuilder.Entity<Source>()
          .HasMany(s => s.Articles)
          .WithOne(a => a.Source)
          .HasForeignKey(a => a.SourceId)
          .OnDelete(DeleteBehavior.SetNull);
+      
+      modelBuilder.Entity<User>(b =>
+      {
+         b.ToTable("Users");
+         b.Property(u => u.CreatedAt)
+            .IsRequired()
+            .HasDefaultValueSql("NOW()");
+      });
    }
-   
+
 }
