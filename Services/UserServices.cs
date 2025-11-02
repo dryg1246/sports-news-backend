@@ -30,6 +30,16 @@ public class UserServices
             EmailConfirmed = false
         };
 
+        var existingUser = await _userManager.FindByEmailAsync(dto.Email);
+        if (existingUser != null)
+        {
+            return IdentityResult.Failed(new IdentityError
+            {
+                Code = "DuplicateEmail",
+                Description = "Пользователь с таким емейл уже существует"
+            });
+        }
+
         var result = await _userManager.CreateAsync(user, dto.Password);
 
         if (result.Succeeded)
