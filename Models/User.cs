@@ -2,7 +2,9 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Identity;
 using Newtonsoft.Json;
+using SportsNewsAPI.Enum;
 using SportsNewsAPI.Interfaces;
+using SportsNewsAPI.Role;
 
 namespace SportsNewsAPI
 {
@@ -35,8 +37,17 @@ namespace SportsNewsAPI
         // public string FullName { get; set; }
         [Required]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-        public User(){}
+
+        // public string Role { get; set; }
+        //
+        // public User(string username) : base(username)
+        // {
+        //     Role = "User";
+        //     CreatedAt = DateTime.UtcNow;
+        // }
         
+        public User() : base() { }
+
 
         // public static User Create(Guid id, string userName, string email, string passwordHash)
         // {

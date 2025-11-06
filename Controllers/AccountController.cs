@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using MimeKit;
 using MimeKit.Text;
 using SportsNewsAPI.Dtos;
+using SportsNewsAPI.Enum;
 using SportsNewsAPI.Interfaces;
 using SportsNewsAPI.Interfaces.Auth;
 using SportsNewsAPI.Interfaces.JWT;
@@ -128,7 +129,7 @@ public class AccountController : Controller
     [HttpPost("/forgot-password")]
     public async Task<ActionResult> ForgotPassword(ForgotPasswordDto dto)
     {
-        var user = await _userManager.FindByEmailAsync(dto.EmailTo);
+        var user = await _userManager.FindByEmailAsync(dto.Email);
     
         if (user == null)
         {
@@ -137,10 +138,10 @@ public class AccountController : Controller
     
         var token = await _userManager.GeneratePasswordResetTokenAsync(user);
         
-        var resetLink = $"http://localhost:5173/reset-password?/email=${dto.EmailTo}token={Uri.EscapeDataString(token)}";
+        var resetLink = $"http://localhost:5173/reset-password?/email=${dto.Email}token={Uri.EscapeDataString(token)}";
         
         var body = $@"
-        <p>Hi {dto.EmailTo}, ScoreXI your favorite website</p>
+        <p>Hi {dto.Email}, ScoreXI your favorite website</p>
         <p>Click the link below to reset your password:</p>
         <a href='{resetLink}'>Reset Password</a>
         <p>This link will expire in 15 minutes.</p>";
@@ -179,6 +180,36 @@ public class AccountController : Controller
 
         await _userManager.UpdateAsync(user);
         return Ok("Пароль изменен");
+    }
+    
+    [Authorize(Roles = "Admin")]
+    [HttpPost("/changeRoleAdmin/{id}")]
+    public async Task<IActionResult> ChangeRole(string id)
+    {
+        var user = await _userManager.FindByIdAsync(id);
+
+        if (user == null)
+        {
+            return BadRequest("User is null");
+        }
+
+        await _userManager.AddToRoleAsync(user, "Admin");
+
+        return Ok(user);
+    }
+    
+    [HttpPost("/checkRole/{id}")]
+    public async Task<IActionResult> CheckRole(string id)
+    {
+        var user = await _userManager.FindByIdAsync(id);
+        if (user == null)
+        {
+            return BadRequest("User is null");
+        }
+        
+        var role = await _userManager.GetRolesAsync(user);
+        
+        return Ok(role);
     }
     
 }

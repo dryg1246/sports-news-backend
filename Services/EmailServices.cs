@@ -16,8 +16,8 @@ public class EmailServices : IEmailServices
         var passwordEmail = Environment.GetEnvironmentVariable("EMAIL_PASSWORD");
         var email = new MimeMessage();
         email.From.Add(MailboxAddress.Parse(emailFrom));
-        email.To.Add(MailboxAddress.Parse(dto.EmailTo));
-        email.Subject = dto.Subject;
+        email.To.Add(MailboxAddress.Parse(dto.Email));
+        email.Subject = dto.Subject ??= "Resset Password";
         email.Body = new TextPart(TextFormat.Html) { Text = body };
         
         
