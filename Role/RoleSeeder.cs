@@ -7,7 +7,7 @@ public class RoleSeeder
     public static async Task SeedRole(IServiceProvider serviceProvider)
     {
         var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
-        var roles = new[] { "Admin", "User" };
+        var roles = new[] { "Admin", "User", "Moderator"};
 
         foreach (var role in roles)
         {

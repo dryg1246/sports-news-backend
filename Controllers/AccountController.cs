@@ -8,7 +8,6 @@ using Microsoft.EntityFrameworkCore;
 using MimeKit;
 using MimeKit.Text;
 using SportsNewsAPI.Dtos;
-using SportsNewsAPI.Enum;
 using SportsNewsAPI.Interfaces;
 using SportsNewsAPI.Interfaces.Auth;
 using SportsNewsAPI.Interfaces.JWT;
@@ -50,24 +49,33 @@ public class AccountController : Controller
 
         return Ok("User registered successfully");
     }
-
+    
     [HttpPost("/login")]
     public async Task<ActionResult> Login([FromBody] LoginUserDto dto)
     {
         var token = await _userServices.Login(dto);
         var user = await _userManager.FindByEmailAsync(dto.Email);
+
+        if (user == null)
+        {
+            return BadRequest("User is null");
+        }
+        var roles = await _userManager.GetRolesAsync(user);
+        
         await _signInManager.SignInAsync(user, isPersistent: false);
 
         return Ok(new 
         { 
             Message = "Пользователь успешно зарегистрирован и авторизован",
             Token = token,
+            Role = roles.FirstOrDefault(),
             UserId = user.Id,
             CreatedAt = user.CreatedAt,
             Email = user.Email
         });
     }
     
+    [Authorize(Roles = "Admin, Moderator")]
     [HttpGet("/allUser")]
     public async Task<ActionResult> GetALlUser()
     {
@@ -83,7 +91,8 @@ public class AccountController : Controller
 
         return Ok(user);
     }
-
+    
+    [Authorize(Roles = "Admin")]
     [HttpPatch("/editUser/{id}")]
     public async Task<ActionResult> EditUser(Guid id, [FromBody] UserUpdateDto dto)
     {
@@ -110,7 +119,7 @@ public class AccountController : Controller
         return Ok(new { user.Email, user.UserName });
     }
 
-    // [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin")]
     [HttpDelete("/deleteUser/{id}")]
     public async Task<string> DeleteUser(Guid id)
     {
@@ -198,7 +207,8 @@ public class AccountController : Controller
         return Ok(user);
     }
     
-    [HttpPost("/checkRole/{id}")]
+    [Authorize(Roles = "Admin, Moderator")]
+    [HttpGet("/role/{id}")]
     public async Task<IActionResult> CheckRole(string id)
     {
         var user = await _userManager.FindByIdAsync(id);
@@ -210,6 +220,60 @@ public class AccountController : Controller
         var role = await _userManager.GetRolesAsync(user);
         
         return Ok(role);
+    }
+
+    [Authorize(Roles = "Admin")]
+    [HttpGet("/allRoles")]
+    public async Task<IActionResult> AllRoles()
+    {
+        // var users = await _context.Users.ToListAsync();
+        var roles = await _context.Roles.ToListAsync();
+
+
+        return Ok(roles);
+    }
+    
+    
+    [Authorize(Roles = "Admin")]
+    [HttpPost("/addRole/{id}")]
+    public async Task<IActionResult> AddRoles(Guid id, [FromBody] RolesDto roleDto)
+    {
+        var user = await _context.Users.FirstOrDefaultAsync(a => a.Id == id);
+        if (user == null)
+        {
+            return BadRequest("User is null");
+        }
+
+        foreach (var role in roleDto.Roles)
+        {
+            await _userManager.AddToRoleAsync(user, role);
+        }
+
+        var roles = await _userManager.GetRolesAsync(user);
+        
+
+        return Ok(roles);
+    }
+    
+    [Authorize(Roles = "Admin")]
+    [HttpDelete("/deleteRole/{id}")]
+    public async Task<IActionResult> DeleteRole(Guid id, [FromBody] RolesDto roleDto)
+    {
+        var user = await _context.Users.FirstOrDefaultAsync(a => a.Id == id);
+        if (user == null)
+        {
+            return BadRequest("User is null");
+        }
+
+        foreach (var role in roleDto.Roles)
+        {
+            await _userManager.RemoveFromRoleAsync(user, role);
+        }
+
+        var roles = await _userManager.GetRolesAsync(user);
+        
+
+        return Ok(roles);
     }
     
 }

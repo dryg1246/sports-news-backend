@@ -2,7 +2,6 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Identity;
 using Newtonsoft.Json;
-using SportsNewsAPI.Enum;
 using SportsNewsAPI.Interfaces;
 using SportsNewsAPI.Role;
 

@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using SportsNewsAPI.Dtos;
-using SportsNewsAPI.Enum;
 using SportsNewsAPI.Interfaces;
 using SportsNewsAPI.Interfaces.Auth;
 using SportsNewsAPI.Interfaces.JWT;
@@ -62,12 +61,6 @@ public class UserServices
         if (user == null)
         {
             throw new Exception("Пользователь не найден");
-        }
-
-        if (user != null)
-        {
-            var roles = await _userManager.GetRolesAsync(user);
-            
         }
 
         // var passwordHashed = _userManager.PasswordHasher.HashPassword(user, dto.Password);
