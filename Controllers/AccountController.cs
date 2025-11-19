@@ -1,7 +1,6 @@
 ﻿using MailKit.Net.Smtp;
 using MailKit.Security;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -13,6 +12,7 @@ using SportsNewsAPI.Interfaces.Auth;
 using SportsNewsAPI.Interfaces.JWT;
 using SportsNewsAPI.Request.User;
 using SportsNewsAPI.Services;
+using Microsoft.AspNetCore.Identity;
 
 namespace SportsNewsAPI.Controllers;
 
@@ -27,9 +27,10 @@ public class AccountController : Controller
     private readonly IJwtGenerate _jwtGenerate;
     private readonly IPasswordHasher _passwordHasher;
     private readonly UserManager<User> _userManager;
+    private readonly RoleManager<Role> _roleManager;
     private readonly SignInManager<User> _signInManager;
 
-    public AccountController(SignInManager<User> signInManager, UserManager<User> userManager, IPasswordHasher passwordHasher, IEmailServices emailServices, IJwtGenerate jwtGenerate, UserServices userServices,
+    public AccountController(RoleManager<Role> roleManager, SignInManager<User> signInManager, UserManager<User> userManager, IPasswordHasher passwordHasher, IEmailServices emailServices, IJwtGenerate jwtGenerate, UserServices userServices,
         SportsNewsContext context, IUserRepository userRepository)
     {
         _userServices = userServices;
@@ -40,6 +41,7 @@ public class AccountController : Controller
         _passwordHasher = passwordHasher;
         _userManager = userManager;
         _signInManager = signInManager;
+        _roleManager = roleManager;
     }
 
     [HttpPost("/register")]
@@ -227,7 +229,7 @@ public class AccountController : Controller
     public async Task<IActionResult> AllRoles()
     {
         // var users = await _context.Users.ToListAsync();
-        var roles = await _context.Roles.ToListAsync();
+        var roles = await _roleManager.Roles.ToListAsync();
 
 
         return Ok(roles);
@@ -244,15 +246,27 @@ public class AccountController : Controller
             return BadRequest("User is null");
         }
 
-        foreach (var role in roleDto.Roles)
+        // var roles = _roleManager.Roles.ToListAsync();
+
+        foreach (var roleName in roleDto.Roles)
         {
-            await _userManager.AddToRoleAsync(user, role);
+            if (!await _roleManager.RoleExistsAsync(roleName))
+            {
+                await _roleManager.CreateAsync(new Role(roleName));
+            }
+
+            var result = await _userManager.AddToRoleAsync(user, roleName);
+
+            if (!result.Succeeded)
+            {
+                return BadRequest("Роли не добавленны");
+            }
         }
 
-        var roles = await _userManager.GetRolesAsync(user);
+        var rolesUser = await _userManager.GetRolesAsync(user);
         
 
-        return Ok(roles);
+        return Ok(rolesUser);
     }
     
     [Authorize(Roles = "Admin")]
@@ -265,9 +279,13 @@ public class AccountController : Controller
             return BadRequest("User is null");
         }
 
-        foreach (var role in roleDto.Roles)
+        foreach (var roleName in roleDto.Roles)
         {
-            await _userManager.RemoveFromRoleAsync(user, role);
+            var result = await _userManager.RemoveFromRoleAsync(user, roleName);
+            if (!result.Succeeded)
+            {
+                return BadRequest("Роли не удаленны");
+            }
         }
 
         var roles = await _userManager.GetRolesAsync(user);

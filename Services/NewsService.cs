@@ -162,7 +162,7 @@ public async Task LoadFootballNews()
         _context.Articles.RemoveRange(oldArticles);
         await _context.SaveChangesAsync();
         var url =
-            $"https://newsapi.org/v2/everything?q=soccer%20OR%20football%20-\\%22American%20Football\\%22&source=bleacher-report,espn&from={from}&to={to}&language=en&sortBy=publishedAt&apiKey=778121830edd480eba72a03f23ab9ec0";
+            $"https://newsapi.org/v2/everything?q=%28soccer%20OR%20%22association%20football%22%29%20NOT%20nfl%20NOT%20%22american%20football%22%20NOT%20%22college%20football%22%20NOT%20cfb%20NOT%20ncaa%20NOT%20quarterback%20NOT%20touchdown%20NOT%20%22bowl%20game%22%20NOT%20tahiti%20NOT%20vanuatu%20NOT%20oceania%20NOT%20ofc%20NOT%20%22a-league%22%20NOT%20usl%20NOT%20%22mls%20next%22%20NOT%20youth%20NOT%20u-17%20NOT%20u-20%20NOT%20u-23%20NOT%20women%20NOT%20%22women%27s%22%20NOT%20%22wsl%22%20NOT%20%22nwsl%22\n&sources=bleacher-report,espn&from={{from}}&to={{to}}&language=en&sortBy=publishedAt&apiKey=778121830edd480eba72a03f23ab9ec0";
         var request = new HttpRequestMessage(HttpMethod.Get, url);
         request.Headers.UserAgent.ParseAdd("MyFootballApp/1.0");
         

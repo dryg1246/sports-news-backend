@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace SportsNewsAPI;
 
-public class SportsNewsContext :  IdentityDbContext<User, IdentityRole<Guid>, Guid>
+public class SportsNewsContext :  IdentityDbContext<User, Role, Guid>
 {
    public SportsNewsContext(DbContextOptions<SportsNewsContext> options) : base(options)
    {
